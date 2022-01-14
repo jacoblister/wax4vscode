@@ -252,7 +252,7 @@ export function activate(context: vscode.ExtensionContext) {
   // 👍 formatter implemented using API
   context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('wax', {
     async provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
-    vscode.window.setStatusBarMessage("WAXY Formatted",4000);
+    vscode.window.setStatusBarMessage("WAX Formatted",4000);
 
     let text = document.getText();
     fs.writeFileSync(`${TMP}/fmt.wax`,text);

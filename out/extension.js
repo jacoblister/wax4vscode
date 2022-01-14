@@ -254,7 +254,7 @@ function activate(context) {
     context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('wax', {
         provideDocumentFormattingEdits(document) {
             return __awaiter(this, void 0, void 0, function* () {
-                vscode.window.setStatusBarMessage("WAXY Formatted", 4000);
+                vscode.window.setStatusBarMessage("WAX Formatted", 4000);
                 let text = document.getText();
                 fs.writeFileSync(`${TMP}/fmt.wax`, text);
                 const { stdout } = yield execAsync(`wax fmt ${TMP}/fmt.wax`);
