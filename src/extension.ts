@@ -3,6 +3,8 @@
 import { fstat } from 'fs';
 import * as vscode from 'vscode';
 const {exec} = require('child_process');
+const util = require('util');
+const execAsync = util.promisify(require('child_process').exec);
 const {basename, dirname,extname} = require('path');
 const fs = require('fs');
 
@@ -244,8 +246,26 @@ export function activate(context: vscode.ExtensionContext) {
   }));
   context.subscriptions.push(vscode.commands.registerCommand('wax4vscode.togglelint', ()=>{
     LINTTOGGLE = !LINTTOGGLE;
-    vscode.window.setStatusBarMessage("lint turned: "+["OFF","ON"][Number(LINTTOGGLE)],4000);
+    vscode.window.setStatusBarMessage("lint1 turned: "+["OFF","ON"][Number(LINTTOGGLE)],4000);
   }))
+
+  // 👍 formatter implemented using API
+  context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('wax', {
+    async provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+    vscode.window.setStatusBarMessage("WAXY Formatted",4000);
+
+    let text = document.getText();
+    fs.writeFileSync(`${TMP}/fmt.wax`,text);
+    const { stdout } = await execAsync(`wax fmt ${TMP}/fmt.wax`);
+    text = stdout;
+ 
+    let invalidRange = new vscode.Range(0, 0, document.lineCount, 0);
+    let validFullRange = document.validateRange(invalidRange);
+   
+    return [vscode.TextEdit.replace(validFullRange, text)];
+  }
+}));
+
   vscode.workspace.onDidSaveTextDocument(doc=>{
     if (LINTTOGGLE){
       linter(TARG);

@@ -1,8 +1,18 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const { exec } = require('child_process');
+const util = require('util');
+const execAsync = util.promisify(require('child_process').exec);
 const { basename, dirname, extname } = require('path');
 const fs = require('fs');
 const EXITOK = `<h2 style="color:cyan">√</h2>`;
@@ -238,7 +248,22 @@ function activate(context) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('wax4vscode.togglelint', () => {
         LINTTOGGLE = !LINTTOGGLE;
-        vscode.window.setStatusBarMessage("lint turned: " + ["OFF", "ON"][Number(LINTTOGGLE)], 4000);
+        vscode.window.setStatusBarMessage("lint1 turned: " + ["OFF", "ON"][Number(LINTTOGGLE)], 4000);
+    }));
+    // 👍 formatter implemented using API
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('wax', {
+        provideDocumentFormattingEdits(document) {
+            return __awaiter(this, void 0, void 0, function* () {
+                vscode.window.setStatusBarMessage("WAXY Formatted", 4000);
+                let text = document.getText();
+                fs.writeFileSync(`${TMP}/fmt.wax`, text);
+                const { stdout } = yield execAsync(`wax fmt ${TMP}/fmt.wax`);
+                text = stdout;
+                let invalidRange = new vscode.Range(0, 0, document.lineCount, 0);
+                let validFullRange = document.validateRange(invalidRange);
+                return [vscode.TextEdit.replace(validFullRange, text)];
+            });
+        }
     }));
     vscode.workspace.onDidSaveTextDocument(doc => {
         if (LINTTOGGLE) {
